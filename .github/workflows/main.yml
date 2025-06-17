@@ -25,21 +25,23 @@ jobs:
 
       # Build the React application using the development Dockerfile
       # This creates a Docker image for testing
-      - run: docker build -t lancem/react-test -f ./client/Dockerfile.dev ./client
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/react-test -f ./client/Dockerfile.dev ./client
 
       # Run the test suite inside the Docker container
       # CI=true ensures the tests run in CI mode
-      - run: docker run -e CI=true lancem/react-test npm test
+      - run: docker run -e CI=true ${{ secrets.DOCKERHUB_USERNAME }}/react-test npm test
 
-      - run: docker build -t lancem/multiclient ./client
-      - run: docker build -t lancem/multi-nginx ./nginx
-      - run: docker build -t lancem/multi-server ./server
-      - run: docker build -t lancem/multi-worker ./worker
+      # Build all service images
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/multiclient ./client
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/multi-nginx ./nginx
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/multi-server ./server
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/multi-worker ./worker
 
-      - run: docker push lancem/multiclient
-      - run: docker push lancem/multi-nginx
-      - run: docker push lancem/multi-server
-      - run: docker push lancem/multi-lancem/multi-worker
+      # Push all images to Docker Hub
+      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/multiclient
+      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/multi-nginx
+      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/multi-server
+      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/multi-worker
 
 
       
