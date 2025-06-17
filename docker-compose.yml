@@ -1,0 +1,63 @@
+# Docker Compose file version - using version 3 for modern Docker features
+version: "3"
+
+# Define all the services that make up our application
+services:
+  # PostgreSQL database service for persistent data storage
+  postgres:
+    image: "postgres:latest" # Use the latest PostgreSQL image
+    environment:
+      - POSTGRES_PASSWORD=postgres_password # Set the database password
+
+  # Redis service for caching and message queuing
+  redis:
+    image: "redis:latest" # Use the latest Redis image
+
+  # Nginx web server for reverse proxy and static file serving
+  nginx:
+    restart: always # Automatically restart if the container stops
+    build:
+      context: ./nginx # Build from the nginx directory
+      dockerfile: Dockerfile.dev # Use the development Dockerfile
+    ports:
+      - "3050:80" # Map container port 80 to host port 3050
+
+  # Backend API service
+  api:
+    build:
+      context: ./server # Build from the server directory
+      dockerfile: Dockerfile.dev # Use the development Dockerfile
+    volumes:
+      - /app/node_modules # Preserve node_modules in container
+      - ./server:/app # Mount server directory for live code updates
+    environment:
+      - REDIS_HOST=redis # Connect to Redis service
+      - REDIS_PORT=6379 # Default Redis port
+      - PGUSER=postgres # PostgreSQL username
+      - PGHOST=postgres # PostgreSQL host (service name)
+      - PGDATABASE=postgres # Database name
+      - PGPASSWORD=postgres_password # Database password
+      - PGPORT=5432 # Default PostgreSQL port
+
+  # Frontend client service
+  client:
+    build:
+      context: ./client # Build from the client directory
+      dockerfile: Dockerfile.dev # Use the development Dockerfile
+    volumes:
+      - /app/node_modules # Preserve node_modules in container
+      - ./client:/app # Mount client directory for live code updates
+    environment:
+      - WDS_SOCKET_PORT=0 # Disable WebSocket for development server
+
+  # Background worker service for processing tasks
+  worker:
+    build:
+      context: ./worker # Build from the worker directory
+      dockerfile: Dockerfile.dev # Use the development Dockerfile
+    volumes:
+      - /app/node_modules # Preserve node_modules in container
+      - ./worker:/app # Mount worker directory for live code updates
+    environment:
+      - REDIS_HOST=redis # Connect to Redis service
+      - REDIS_PORT=6379 # Default Redis port
