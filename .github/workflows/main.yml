@@ -36,9 +36,10 @@ jobs:
       - run: docker build -t lancem/multi-server ./server
       - run: docker build -t lancem/multi-worker ./worker
 
-      # Create a deployment package
-      # This zips all files except git-related ones
-      # The package can be used for deployment to a server
-      - name: Generate deployment package 
-        run: zip -r deploy.zip . -x '*.git*' 
+      - run: docker push lancem/multiclient
+      - run: docker push lancem/multi-nginx
+      - run: docker push lancem/multi-server
+      - run: docker push lancem/multi-lancem/multi-worker
+
+
       
